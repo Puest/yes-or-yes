@@ -736,8 +736,9 @@ $('#timeChips').addEventListener('click', (e) => {
     chip.style.pointerEvents = 'none';
     setTimeout(() => {
       chip.remove();
-      // 사라진 점심의 ☀️가 오후로 넘어가 '우리의 점심'이 됨 (14:00 그대로 선택 가능)
-      const pm = document.querySelector('#timeChips .chip[data-time="14:00"]');
+      // 사라진 점심의 ☀️가 남은 첫 칩(오후)으로 넘어가 '우리의 점심'이 됨
+      // 시간값(data-time)을 하드코딩하지 않아 시간을 바꿔도 동작함
+      const pm = document.querySelector('#timeChips .chip');
       if(pm && !pm.textContent.includes('우리의 점심')){
         pm.textContent = '우리의 점심 ☀️';
         sfx.pop(3);
