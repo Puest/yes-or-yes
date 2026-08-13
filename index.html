@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>띄딤아, 데이트 할래? 💌</title>
-<meta property="og:title" content="띄딤아, 나랑 데이트 할래? 💕" />
+<title>데이트 할래? 💌</title>
+<meta property="og:title" content="나랑 데이트 할래? 💕" />
 <meta property="og:description" content="YES를 눌러줘 (NO는... 도망갈걸?)" />
 <style>
   /* ===== 기본/리셋 ===== */
@@ -189,7 +189,7 @@
     <!-- ① 신청 화면 -->
     <section class="screen active" id="screen-ask">
       <span class="emoji-lg">🥺</span>
-      <h1 id="q-title">띄딤아, 우리… 데이트 할래?</h1>
+      <h1 id="q-title">우리… 데이트 할래?</h1>
       <p class="sub" id="taunt">둘 중 하나만 눌러줘 👀</p>
       <div class="btn-row" id="askRow">
         <button class="btn btn-yes" id="yesBtn">YES 💕</button>
@@ -200,7 +200,7 @@
     <!-- ② 날짜/장소 선택 화면 -->
     <section class="screen" id="screen-date">
       <span class="emoji-lg">🗓️</span>
-      <h1>좋았어 띄딤아! 언제 만날까? </h1>
+      <h1 id="date-title">좋았어! 언제 만날까?</h1>
       <p class="sub">우리 데이트 날을 정해보자 💫</p>
 
       <div class="field">
@@ -217,7 +217,7 @@
         <label>⏰ 시간</label>
         <div class="chips" id="timeChips">
           <button class="chip" data-time="11:00">점심 ☀️</button>
-          <button class="chip" data-time="13:30">오후 🌤️</button>
+          <button class="chip" data-time="12:30">오후 🌤️</button>
           <button class="chip" data-time="18:30">저녁 🌙</button>
         </div>
         <input type="time" id="timeInput" style="margin-top:10px" />
@@ -226,8 +226,8 @@
       <div class="field">
         <label>📍 어디서 만날까?</label>
         <div class="chips" id="placeChips">
-          <button class="chip" data-place="화순 부영 6차 앞 🏠">화순</button>
-          <button class="chip" data-place="두산위브더파크 앞 🏠">광주</button>
+          <button class="chip" data-place="나의 집 앞 🏠">나한테</button>
+          <button class="chip" data-place="너의 집 앞 🏠">너한테</button>
           <button class="chip" data-place="맛집 탐방 🍝">맛집</button>
           <button class="chip" data-place="산책로 걷기 🚶">산책</button>
         </div>
@@ -265,10 +265,34 @@
 
 <script>
 /* =========================================================================
+   💌 수신인 이름 — URL 뒤에 붙여서 전달
+   ①  .../yes-or-yes/?name=희진   ②  .../yes-or-yes/#희진
+   (주소창에 한글을 그대로 적어도 브라우저가 알아서 인코딩/디코딩함)
+   ========================================================================= */
+function getNameFromURL(){
+  const q = new URLSearchParams(location.search).get('name');
+  if(q && q.trim()) return q.trim();
+  try{
+    const h = decodeURIComponent(location.hash.slice(1));
+    if(h.trim()) return h.trim();
+  }catch(e){ /* 잘못된 인코딩(%만 있는 해시 등)은 무시 */ }
+  return '';
+}
+// 받침 유무로 호칭 만들기: 희진→희진아, 지수→지수야 (한글이 아니면 이름 그대로)
+function vocative(name){
+  const code = name.charCodeAt(name.length - 1) - 0xAC00;
+  if(code < 0 || code > 11171) return name;
+  return name + (code % 28 ? '아' : '야');
+}
+const TO   = getNameFromURL();            // 수신인 이름 (없으면 빈 문자열)
+const CALL = TO ? vocative(TO) : '';      // "희진아" / "지수야" / "Sarah"
+
+/* =========================================================================
    ⚙️ 설정 (여기만 바꾸면 됩니다)
    ========================================================================= */
 const CONFIG = {
-  question:  "띄딤아, 우리… 데이트 할래?",   // 첫 화면 질문
+  // 첫 화면 질문 — URL에 이름이 있으면 "OO아, 우리… 데이트 할래?"
+  question:  CALL ? `${CALL}, 우리… 데이트 할래?` : "우리… 데이트 할래?",
   fromName:  "",                     // 보내는 사람 이름 (공유 메시지에 들어감, 비워도 됨)
   // 카카오톡 "직접" 공유를 켜려면 아래에 카카오 JavaScript 앱키를 넣으세요.
   // https://developers.kakao.com → 내 애플리케이션 → 앱 키 → JavaScript 키
@@ -390,6 +414,11 @@ function setGloom(n){
    ① 신청 화면 : NO 버튼 도망 + 타노스 소멸
    ========================================================================= */
 $('#q-title').textContent = CONFIG.question;
+// URL에 이름이 있으면 탭 제목과 날짜 화면 인사도 개인화
+if(CALL){
+  document.title = `${CALL}, 데이트 할래? 💌`;
+  $('#date-title').textContent = `좋았어 ${CALL}! 언제 만날까?`;
+}
 
 const noBtn  = $('#noBtn');
 const yesBtn = $('#yesBtn');
@@ -426,8 +455,8 @@ const REJECT_SUBS = [
 // 거절당한 횟수만큼 점점 애절해지는 재신청 멘트 (REJECT_SUBS와 1:1 대응)
 const ASK_AGAIN_TITLES = [
   "그래도… 나랑 데이트 할래?",
-  "띄딤아 나를 두 번 찬 건 네가 처음이야… 데이트 할래?",
-  "띄딤아 마지막으로 물을게… 제발!!! 데이트 할래…?"
+  `${CALL ? CALL + ' ' : ''}나를 두 번 찬 건 네가 처음이야… 데이트 할래?`,
+  `${CALL ? CALL + ' ' : ''}마지막으로 물을게… 제발!!! 데이트 할래…?`
 ];
 
 // 도망 단계별 이모지 이미지 (배경 제거된 PNG, TAUNTS 멘트와 1:1 대응)
@@ -519,7 +548,7 @@ function dodge(){
 
   // 정해진 횟수를 넘기면 타노스처럼 소멸 ✨ — 질문도 '마지막 신청' 버전으로
   if(dodgeCount >= CONFIG.maxDodges){
-    $('#q-title').textContent = "띄딤아, 이제 거절 할 버튼도 없어…! 우리 데이트 할래?";
+    $('#q-title').textContent = `${CALL ? CALL + ', ' : ''}이제 거절 할 버튼도 없어…! 우리 데이트 할래?`;
     taunt.textContent = "결국 이렇게 됐네… 엉엉 그치만 이제 YES뿐이야!!!";
     sfx.swoosh();                   // 슈욱- 하고 흩어지는 소리
     setGloom(gloomLevel + 2);       // 소멸의 순간, 가장 우중충
@@ -728,7 +757,7 @@ $('#timeChips').addEventListener('click', (e) => {
   const chip = e.target.closest('.chip'); if(!chip) return;
   // 점심은 만날 수 없는 시간… 누르면 버튼이 빙글 돌며 사라짐 (선택 불가)
   if(chip.dataset.time === '11:00'){
-    toast('우리가 이 시간에 점심을 먹을 수 있었나…? 🤔');
+    toast('이 시간에 점심은 너무 이르지!! 🤔');
     sfx.sad();
     chip.style.transition = 'transform .5s ease, opacity .5s ease';
     chip.style.transform = 'scale(0) rotate(360deg)';
