@@ -100,5 +100,5 @@ GitHub Pages로 바로 배포할 수 있습니다.
 4. 링크 뒤에 받는 사람 이름을 붙여서 보내면 끝 💘
 
 ```
-https://<username>.github.io/yes-or-yes/?name=희진
+https://<username>.github.io/yes-or-yes/?name=<수신인 이름>
 ```
